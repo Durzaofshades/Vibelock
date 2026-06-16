@@ -1,0 +1,2 @@
+06/15 02:06:30 [Animation 2] Different skeleton for referenced graph detected, this is not allowed. Trying to use 'animgraphs/animgraph2/hero/hero_shoot.vnmgraph' within 'animgraphs/animgraph2/hero/hero_playercontrol.vnmgraph+werewolf_transform.vnmgraph'
+
