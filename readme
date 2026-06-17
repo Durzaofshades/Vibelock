@@ -1,4 +1,15 @@
 
+
+
+
+Dependencies
+
+Pillow - Python Image Processing
+
+Tesseract - OCR
+Install Tesseract https://github.com/UB-Mannheim/tesseract/wiki#tesseract-installer-for-windows
+
+
 for Actual Puppygirl Werewolf
 
 Regex Commands Reference https://github.com/Jelloge/Deadlock-Rich-Presence/blob/master/src/config.json
