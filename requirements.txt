@@ -3,4 +3,3 @@ pytesseract
 matplotlib
 buttplug
 numpy
-cv2

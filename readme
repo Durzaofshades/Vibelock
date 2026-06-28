@@ -2,13 +2,9 @@
 
 
 
-Dependencies
+External Dependencies
 
-Pillow - Python Image Processing
-
-Tesseract - OCR
-Install Tesseract https://github.com/UB-Mannheim/tesseract/wiki#tesseract-installer-for-windows
-
+	requires opencv
 
 for Actual Puppygirl Werewolf
 
