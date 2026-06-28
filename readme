@@ -1,11 +1,7 @@
 
-
-
-
 External Dependencies
-
-	requires opencv
+1. opencv
+2. intiface
+3. buttplug.io
 
 for Actual Puppygirl Werewolf
-
-Regex Commands Reference https://github.com/Jelloge/Deadlock-Rich-Presence/blob/master/src/config.json

@@ -154,7 +154,12 @@ class Vibrator:
 		self.client = ButtplugClient("Pluglocked")
 		await connect(self.client)
 		set_events(self.client)
-		self.device = await get_device(self.client)
+
+		try:
+			self.device = await get_device(self.client)
+		except buttplug.errors.ButtplugConnectorError:
+			raise Exception("ERROR, intiface app not found")
+
 		if self.device != None:
 			await ping(self.device)
 			await check_battery(self.device)
