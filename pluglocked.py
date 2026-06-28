@@ -1,98 +1,61 @@
-#!/bin/python
+#!./env/bin/python
 
 import sys, os
 import pathlib
 import time, datetime
 import asyncio
 
+from settings import *
 from math import floor
 
-from parse_log import *
+from screen_capture import Kill_Log
+# from parse_log import *
+from vibe import Vibrator
 
-from buttplug import (
-	ButtplugClient, 
-	DeviceOutputCommand, 
-	InputType,
-	OutputType
-)
+SETTINGS = set_settings()
+DEBUG = SETTINGS["DEBUG"]
 
-async def connect(client) -> int:
-	try:
-		print("Connecting to server ...")
-		await client.connect("ws://127.0.0.1:12345")
-		print(f"Connected to: {client.server_name}")
-		print("Connection successful")
+# KILL_ASSIST_POINTS = None
+# MAX_VIBRATION      = None
+# MIN_VIBRATION      = None
+# SCORE_DECAY        = None
+# MONITOR            = None
 
-	except ButtplugError as e:
-		print(f"Failed to connect: {e}")
-		return 1
+async def get_events(logs: list[asyncio.Queue]) -> list[str]:
+	events = []
+	for log in logs:
+		event = log.get()
+		assert type(event) is str
+		events.append(event)
+	if DEBUG:
+		print(events)
+	return events
 
-	return 0
-
-async def disconnect(client) -> int:
-	if client.connected:
-		await client.disconnect()
-		print("Disconnected.")
-	return 0
-
-async def get_device(client):
-	device = None
-	
-	print("Finding Devices ...")
-
-	devices_found = len(client.devices.values())
-
-	if devices_found == 0:
-		print("No Connected Devices, Scanning ...")
-		await client.start_scanning()
-		await asyncio.sleep(5)  # Wait for devices to be found
-		await client.stop_scanning()
-		devices_found = len(client.devices.values())
-
-	if devices_found == 0:
-		print("No Devices Connected, Please Connect Device")
-		return None
-
-	if devices_found == 1:
-		for device in client.devices.values():
-			print(f"Found: {device.name}")
-			continue
-
-	if devices_found > 1:
-		print(f"No Multi-Toy Support")
-		raise Exception(f"No Multitoy support: Expected 1 toy found: {client.devices.values()}")
-
-	return device
-
-async def ping(device) -> int:
-	""" Checks for Devices and Gives a Buzz to indicate connection"""
-	print("Pinging Device ...")
-
-	if device.has_output(OutputType.VIBRATE):
-		await device.run_output(DeviceOutputCommand(OutputType.VIBRATE, 0.05))
-		await asyncio.sleep(0.25)
-		await device.stop()
-
-	print("Ping Successful")
-	return 0
-
-async def set_events(client) -> None:
-	""" Sets Buttplug.io Events """
-	client.on_device_added = lambda d: print(f"Connected: {d.name}")
-	client.on_device_removed = lambda d: print(f"Disconnected: {d.name}")
-	client.on_scanning_finished = lambda: print("Scan complete")
-	client.on_server_disconnect = lambda: print("Server disconnected!")
-
-async def set_vibration(device, vibration) -> None:
+last_update = time.time()
+def update_vibration(vibration: float, events: list[str]) -> int:
 	assert type(vibration) is float
-	await device.run_output(DeviceOutputCommand(OutputType.VIBRATE, vibration))
-	return
-
-async def check_battery(device) -> int:
-	if device.has_input(InputType.BATTERY):
-		battery = await device.battery()
-		print(f"Battery: {battery * 100:.0f}%")
-	return 0
+	global last_update
+	now = time.time()
+	time_elapsed = now - last_update
+	last_vibration = vibration
+	if DEBUG: print(events)
+	for event in events:
+		# -- Kills --
+		if "Kills" in event: 
+			# Kills = {x}
+			try:
+				kills = float(event.split("=")[-1].strip())
+			except:
+				kstring = event.split(",")[0]
+				kills = float(kstring.split("=")[-1].strip())
+			if kills > 0:
+				vibration = vibration + SETTINGS["KILL_ASSIST_POINTS"]
+		vibration = min(SETTINGS["MAX_VIBRATION"], vibration)
+		# -- Time Passed --
+		vibration = max(SETTINGS["MIN_VIBRATION"], vibration - (time_elapsed * SETTINGS["SCORE_DECAY"]))
+	last_update = now
+	if DEBUG: print(f"Vibration changed by {vibration - last_vibration:.2f}")
+	return vibration
 
 async def main():
 
@@ -100,38 +63,41 @@ async def main():
 	deadlock_path = f"{home}/.local/share/Steam/steamapps/common/Deadlock/game/citadel"
 	filepath = f"{deadlock_path}/console.log"
 
-	vibration = float(0)
+	global DEBUG
+	DEBUG = False
+	if "--debug" in sys.argv:
+		DEBUG = True
+	
+	global SETTINGS
 
-	client = ButtplugClient("Pluglocked")
+	vibe = Vibrator()
+	await vibe.initialize()
 
-	await connect(client)
-	await set_events(client)
-	device = await get_device(client)
+	# Open Kill Logger
+	kills = Kill_Log(SETTINGS, Debug = DEBUG)
+	kill_queue = kills.queue
 
-	if device != None:
-		await ping(device)
-		await check_battery(device)
+	logs = [kill_queue]
 
-	log = open(filepath)
-
-	last_update = datetime.datetime.now()
-	lines = get_lines(log)
-
+	now = time.time()
 	last_time = 0
 	print_period = 0.5
 
-	for line in lines:
-		print(line)
-		epoch = time.time()
-		event_type = get_event_type(line)
-		vibration = get_event_score(event_type, vibration)
-		await set_vibration(device, vibration)
-		if floor(epoch) > last_time + print_period: 
-			print(vibration)
-			last_time = epoch
-		
+	starting_vibration = 0.05
+	vibration = starting_vibration
 
-	await disconnect(client)
+	while(True):
+	# for i in range(3):
+		epoch = time.time()
+		events = await get_events(logs)
+		# print(events)
+		vibration = update_vibration(vibration, events)
+		await vibe.set_max(vibration)
+		print(f"Max Vibration = {vibration:.2f}")
+		# print(f"Current Vibration = {vibe.vibration:.2f}")
+
+	await vibe.disconnect()
+	return
 
 if __name__ == "__main__":
 	asyncio.run(main())
