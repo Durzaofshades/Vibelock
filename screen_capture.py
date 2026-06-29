@@ -30,6 +30,7 @@ KILL_PIXEL_THRESHOLD = 3000
 print("Loaded screen_capture.py")
 SETTINGS = set_settings()
 DEBUG = SETTINGS["DEBUG"]
+MANUAL_DELAY = SETTINGS["MANUAL_DELAY"]
 
 def epoch():
 	return time.time()
@@ -243,7 +244,7 @@ def check_kill(queue = None):
 def check_kill_loop(queue):
 	while(True):
 		check_kill(queue)
-		sleep(0.1)
+		sleep(MANUAL_DELAY)
 	
 class Kill_Log:
 	queue = None

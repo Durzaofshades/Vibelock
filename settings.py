@@ -21,6 +21,7 @@ def set_settings():
 	settings["SCORE_DECAY"]        = data["Score Decay"]
 	settings["MONITOR"]            = data["Monitor"]
 	settings["DEBUG"]              = (data["Debug"] == 1)
+	settings["MANUAL_DELAY"]       = float(data["Manual Delay"])
 
 	for key in settings.keys():
 		assert settings[key] != None
