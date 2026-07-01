@@ -1,9 +1,10 @@
 
 Steps to Run:
-Install Python
-Run Install.py
-Run & Download intiface
-Configure Settings.csv
-Run Vibelock.py
+1. Install: Python
+2. Run: install.bat
+3. Download & Run: intiface (https://intiface.com/#intiface-central)
+4. Configure: Settings.csv
+  - if only one monitor, set monitor to 0
+5. Run Vibelock.py
 
 for Actual Puppygirl Werewolf
