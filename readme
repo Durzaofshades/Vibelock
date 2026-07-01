@@ -1,6 +1,7 @@
 
 Steps to Run:
 Install Python
+Run Install.py
 Run & Download intiface
 Configure Settings.csv
 Run Vibelock.py
