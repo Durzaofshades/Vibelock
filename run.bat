@@ -1,1 +1,2 @@
 py vibelock.py
+pause
