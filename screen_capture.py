@@ -26,7 +26,7 @@ from multiprocessing import Process, Queue
 
 # reader = easyocr.Reader(['en']) 
 
-KILL_PIXEL_THRESHOLD = 3000
+KILL_PIXEL_THRESHOLD = 500
 print("Loaded screen_capture.py")
 SETTINGS = set_settings()
 DEBUG = SETTINGS["DEBUG"]
